@@ -1,7 +1,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { THookUtils, TStoreContext } from "./types";
 
-export const creatStore = <T extends object>(initialValue: T) => {
+export const createStore = <T extends object>(initialValue: T) => {
   const context: TStoreContext<T> = {
     listeners: new Set<VoidFunction>(),
     data: initialValue,

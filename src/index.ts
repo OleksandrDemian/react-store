@@ -1,2 +1,2 @@
-export { creatStore } from "./store";
+export { createStore } from "./store";
 export type { THookUtils, TStoreContext } from "./types";
