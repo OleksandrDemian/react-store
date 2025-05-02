@@ -46,9 +46,7 @@ export const createStore = <T extends object>(initialValue: T) => {
 
     return proxy;
   };
-
-  hook.update = update;
-  hook.get = get;
+  hook.store = { get, update };
 
   return hook;
 };
