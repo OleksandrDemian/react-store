@@ -1,5 +1,5 @@
-import { useCallback, useSyncExternalStore } from "react";
-import { THookUtils, TStoreContext } from "./types";
+import { useMemo, useSyncExternalStore } from "react";
+import { IStoreHook, TStoreContext, TStoreUpdater } from "./types";
 
 export const createStore = <T extends object>(initialValue: T) => {
   const context: TStoreContext<T> = {
@@ -12,23 +12,25 @@ export const createStore = <T extends object>(initialValue: T) => {
     return () => context.listeners.delete(callback);
   };
 
-  const triggerListeners = () => {
+  const trigger = () => {
     context.listeners.forEach(l => l());
   };
 
   const get = () => context.data;
+  const update = (updater: TStoreUpdater<T>) => {
+    if (typeof updater === "function") {
+      context.data = updater(context.data);
+    } else {
+      context.data = updater;
+    }
 
-  function hook (withUtils: true): [T, THookUtils<T>];
-  function hook (withUtils?: false): T;
-  function hook (withUtils?: boolean) {
+    trigger();
+  };
+
+  const hook: IStoreHook<T> = () => {
     const data = useSyncExternalStore<T>(subscribe, get, get);
-    
-    const update = useCallback((fn: (cur: T) => T) => {
-      context.data = fn(context.data);
-      triggerListeners();
-    }, []);
 
-    const proxy = new Proxy(data, {
+    const proxy = useMemo(() => new Proxy(data, {
       get: (_, prop) => {
         return (context.data as any)[prop];
       },
@@ -37,17 +39,16 @@ export const createStore = <T extends object>(initialValue: T) => {
           ...context.data,
           [prop]: value,
         };
-        triggerListeners();
+        trigger();
         return true;
       }
-    });
+    }), [data]);
 
-    if (withUtils) {
-      return [proxy, { update }];
-    } else {
-      return proxy;
-    }
-  }
+    return proxy;
+  };
+
+  hook.update = update;
+  hook.get = get;
 
   return hook;
 };

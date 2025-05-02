@@ -17,6 +17,7 @@
 npm i @odemian/react-store
 ```
 
+
 ## 🧑‍💻 Usage
 
 ### 1. Create your store
@@ -25,25 +26,26 @@ npm i @odemian/react-store
 // stores/userStore.ts
 import { createStore } from "@odemian/react-store";
 
-export const useUserStore = createStore<{
-  name: string; // typesafe
+// Type safe
+export const useUser = createStore<{
+  name: string;
+  surname: string;
 }>({
   name: "",
+  surname: "",
 });
 ```
 
 ### 2. Use it in your component
 
-#### 🧪 Option A: Proxy-based mutation (object-style)
-
 ```tsx
-import { useUserStore } from "./stores/userStore";
+import { useUser } from "./stores/userStore";
 
 export const UserSettings = () => {
-  const user = useUserStore(); // no need to destructure, fully type and ready to use
+  const user = useUser(); // no need to destructure, fully type and ready to use
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    user.name = e.currentTarget.value; // feels like magic 🔮
+    user.name = e.currentTarget.value; // feels like magic 🔮, this mutation is reactive
   };
 
   return (
@@ -56,29 +58,31 @@ export const UserSettings = () => {
 };
 ```
 
-#### ⚙️ Option B: With `update()` util (functional style)
+### 3. Async data fetching
 
 ```tsx
-import { useUserStore } from "./stores/userStore";
+import { useUser } from "./stores/userStore";
+import { fetchUser } from "./api";
 
 export const UserSettings = () => {
-  const [user, { update }] = useUserStore(true); // true = enable utils
+  const user = useUser();
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    update(prev => ({
-      name: e.currentTarget.value,
-    }));
-  };
+  useEffect(() => {
+    fetchUser().then((newData) => {
+      // every hook has static store property. This property exposes `get` and `update` utility functions
+      useUser.store.update(newData); // update is reactive
+      // you can also pass update function: useUser.store.update((curr) => ({ ...curr, ...newData }));
+    });
+  }, []);
 
   return (
     <div>
-      <h2>User settings</h2>
-      <label htmlFor="name">User name</label>
-      <input id="name" value={user.name} onChange={onChange} />
+      <h2>User name: {user.name} {user.surname}</h2>
     </div>
   );
 };
 ```
+
 
 ## 💡 Why Use This?
 
@@ -90,23 +94,10 @@ export const UserSettings = () => {
 | 🧼 Clean API          | No need for reducers, dispatch, or boilerplate |
 | 🧠 Fully Type-Safe    | Typescript support built-in out of the box     |
 
+
 ## 🛑 Caveats
 
 * Not intended for highly complex state logic (e.g. middleware, effects)
-
-## 🛠️ API Reference
-
-### `createStore<T>(initialValue: T) => hook`
-
-Returns a React hook
-
-#### `const state = useStore()`
-
-Gives a reactive **proxy object**
-
-#### `const [state, { update }] = useStore(true)`
-
-Gives proxy and a functional `update(fn)` util
 
 ## 📃 License
 
