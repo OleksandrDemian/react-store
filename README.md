@@ -1,4 +1,4 @@
-# 🧠 **react-proxy-store**
+# 🧠 **@odemian/react-store**
 
 > A *super tiny* (\~1KB) global state manager for React — with a twist: update state like plain objects using **proxy magic** ✨
 
@@ -14,7 +14,7 @@
 ## 📦 Installation
 
 ```bash
-npm install react-proxy-store
+npm i @odemian/react-store
 ```
 
 ## 🧑‍💻 Usage
