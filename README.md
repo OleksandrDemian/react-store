@@ -1,12 +1,6 @@
-Sure! Here's an engaging and developer-friendly `README.md` for your NPM package:
-
----
-
 # 🧠 **react-proxy-store**
 
 > A *super tiny* (\~1KB) global state manager for React — with a twist: update state like plain objects using **proxy magic** ✨
-
----
 
 ## 🚀 Features
 
@@ -17,15 +11,11 @@ Sure! Here's an engaging and developer-friendly `README.md` for your NPM package
 * 🛠️ **Optional utilities**: use functional `update()` when you want more control
 * ⚛️ **Works across components**: shared, reactive global state
 
----
-
 ## 📦 Installation
 
 ```bash
 npm install react-proxy-store
 ```
-
----
 
 ## 🧑‍💻 Usage
 
@@ -41,8 +31,6 @@ export const useUserStore = createStore<{
   name: "",
 });
 ```
-
----
 
 ### 2. Use it in your component
 
@@ -92,8 +80,6 @@ export const UserSettings = () => {
 };
 ```
 
----
-
 ## 💡 Why Use This?
 
 | Feature               | Benefit                                        |
@@ -104,13 +90,9 @@ export const UserSettings = () => {
 | 🧼 Clean API          | No need for reducers, dispatch, or boilerplate |
 | 🧠 Fully Type-Safe    | Typescript support built-in out of the box     |
 
----
-
 ## 🛑 Caveats
 
 * Not intended for highly complex state logic (e.g. middleware, effects)
-
----
 
 ## 🛠️ API Reference
 
@@ -125,8 +107,6 @@ Gives a reactive **proxy object**
 #### `const [state, { update }] = useStore(true)`
 
 Gives proxy and a functional `update(fn)` util
-
----
 
 ## 📃 License
 
