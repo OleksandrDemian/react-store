@@ -190,22 +190,16 @@ export const useTodos = createStore<TTodo[]>([{
 }]);
 
 // define actions
-export const toggleTodo = (id: number) => {
-  useTodos.store.update((todos) => todos.map(
-    (t) => t.id === id ? ({ ...t, done: !t.done }) : t
-  ));
-};
+export const toggleTodo = (id: number) => useTodos.store.update(
+  (todos) => todos.map((t) => t.id === id ? ({ ...t, done: !t.done }) : t),
+);
 
-export const addTodo = (name: string) => {
-  useTodos.store.update(
-    (todos) => [...todos, { name, id: Date.now(), done: false }]
-  );
-};
+export const addTodo = (name: string) => useTodos.store.update(
+  (todos) => [...todos, { name, id: Date.now(), done: false }],
+);
 
 export const removeTodo = (id: number) => useTodos.store.update(
-  todos => todos.filter(
-    (todo) => todo.id !== id,
-  ),
+  (todos) => todos.filter((todo) => todo.id !== id),
 );
 
 // UI components
