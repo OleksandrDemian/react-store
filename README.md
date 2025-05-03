@@ -167,6 +167,99 @@ useCounter.store.subscribe((state) => console.log(state.count));
 ## 🛑 Caveats
 
 * Not intended for highly complex state logic (e.g. middleware, effects)
+* Reactivity only applies to the top level object (it still works with nested objects as long as you do not destructure root object)
+* Even tho array.push/pop/etc... work, it is better to use actions (useHook.store.update) to work with stores that are arrays at root
+
+## Example todo app
+
+```tsx
+import { createStore } from "@odemian/react-store";
+import { useState } from "react";
+
+export type TTodo = {
+  id: number;
+  name: string;
+  done: boolean;
+};
+
+// Create todos store
+export const useTodos = createStore<TTodo[]>([{
+  id: Date.now(),
+  done: false,
+  name: "Array store",
+}]);
+
+// define actions
+export const toggleTodo = (id: number) => {
+  useTodos.store.update((todos) => todos.map(
+    (t) => t.id === id ? ({ ...t, done: !t.done }) : t
+  ));
+};
+
+export const addTodo = (name: string) => {
+  useTodos.store.update(
+    (todos) => [...todos, { name, id: Date.now(), done: false }]
+  );
+};
+
+export const removeTodo = (id: number) => useTodos.store.update(
+  todos => todos.filter(
+    (todo) => todo.id !== id,
+  ),
+);
+
+// UI components
+const CreateTodo = () => {
+  const [newTodo, setNewTodo] = useState("");
+  
+  const onAddNewTodo = () => {
+    addTodo(newTodo);
+    setNewTodo("");
+  };
+
+  return (
+    <div>
+      <input
+        value={newTodo}
+        onChange={(e) => setNewTodo(e.currentTarget.value)}
+        onKeyDown={(e) => e.key === "Enter" && onAddNewTodo()}
+      />
+      <button onClick={onAddNewTodo}>Add todo</button>
+    </div>
+  );
+}
+
+const Todos = () => {
+  const todos = useTodos();
+
+  return (
+    <div>
+      {todos.map((todo) => (
+        <div key={todo.id}>
+          <input
+            type="checkbox"
+            checked={todo.done}
+            onChange={() => {
+              toggleTodo(todo.id);
+            }}
+          />
+          <span>{todo.name}</span>
+          <button onClick={() => removeTodo(todo.id)}>Remove</button>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export const App = () => {
+  return (
+    <main>
+      <Todos />
+      <CreateTodo />
+    </main>
+  );
+};
+```
 
 ## 📃 License
 

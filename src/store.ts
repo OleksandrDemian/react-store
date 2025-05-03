@@ -32,10 +32,17 @@ export const createStore = <T extends object>(initialValue: T) => {
         return data[prop];
       },
       set: (_, prop, value) => {
-        data = {
-          ...data,
-          [prop]: value,
-        };
+        if (Array.isArray(data)) {
+          // @ts-ignore
+          data = [...data];
+          data[prop] = value;
+        } else {
+          data = {
+            ...data,
+            [prop]: value,
+          };
+        }
+
         return trigger(data);;
       }
     }), [s]);
