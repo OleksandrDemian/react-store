@@ -164,12 +164,6 @@ counter.count++; // Triggers reactivity
 useCounter.store.subscribe((state) => console.log(state.count));
 ```
 
-## 🛑 Caveats
-
-* Not intended for highly complex state logic (e.g. middleware, effects)
-* Reactivity only applies to the top level object (it still works with nested objects as long as you do not destructure root object)
-* Even tho array.push/pop/etc... work, it is better to use actions (useHook.store.update) to work with stores that are arrays at root
-
 ## Example todo app
 
 ```tsx
@@ -234,6 +228,7 @@ const Todos = () => {
             type="checkbox"
             checked={todo.done}
             onChange={() => {
+              // since store is array we have to use actions because only root aray is proxified to provide direct mutations
               toggleTodo(todo.id);
             }}
           />
@@ -254,6 +249,14 @@ export const App = () => {
   );
 };
 ```
+
+
+## 🛑 Caveats
+
+* Not intended for highly complex state logic (e.g. middleware, effects)
+* Reactivity only applies to the top level object (it still works with nested objects as long as you do not destructure root object)
+* Even tho array.push/pop/etc... work, it is better to use actions (useHook.store.update) to work with stores that are arrays at root
+
 
 ## 📃 License
 
