@@ -1,6 +1,10 @@
 # 🧠 **@odemian/react-store**
 
-> A *super tiny* (\~1KB) global state manager for React — with a twist: update state like plain objects using **proxy magic** ✨
+🌍 The smallest and simplest global state manager for React
+
+React has no shortage of state management libraries. From the heavyweight champion Redux to modern solutions like Zustand and Valtio, you’ve got options — sometimes too many. But what if you want something super tiny, fully type-safe, and feels like magic to use?
+
+`@odemian/react-store` is a global state manager that weighs less than ~1KB, has zero dependencies, and gives you reactive state via JavaScript proxies ✨.
 
 ## 🚀 Features
 
@@ -94,6 +98,71 @@ export const UserSettings = () => {
 | 🧼 Clean API          | No need for reducers, dispatch, or boilerplate |
 | 🧠 Fully Type-Safe    | Typescript support built-in out of the box     |
 
+
+## 📘 API Reference
+
+### `createStore<T>(initialValue: T): IStoreHook<T>`
+
+Creates a new global store with the given initial state.
+
+#### Parameters
+
+* `initialValue` (`T`): The initial state object for the store.
+
+#### Returns
+
+A custom React hook (`IStoreHook<T>`) that returns a **proxy-based state object** and provides static utilities via `.store`.
+
+---
+
+### Hook usage: `const state = useStore()`
+
+Returns a proxy-wrapped state object.
+
+* Mutate directly: `state.count += 1`
+* All changes are reactive and automatically re-render subscribers.
+
+---
+
+### Static Methods
+
+Available as `useStore.store`:
+
+#### `store.get(): T`
+
+Returns the current state without subscribing to updates.
+
+#### `store.update(updater: T | (state: T) => T): void`
+
+Updates the store:
+
+* You can pass a partial object or a function that receives current state and returns new state.
+
+Example:
+
+```ts
+useStore.store.update({ name: "Jane" });
+useStore.store.update((curr) => ({ ...curr, name: "Jane" }));
+```
+
+#### `store.subscribe(listener: (state: T) => void): () => void`
+
+Subscribe to state changes without using React hooks (e.g., for non-React usage or external logic).
+
+---
+
+### Example
+
+```ts
+const useCounter = createStore({ count: 0 });
+
+// In a component
+const counter = useCounter();
+counter.count++; // Triggers reactivity
+
+// Outside React
+useCounter.store.subscribe((state) => console.log(state.count));
+```
 
 ## 🛑 Caveats
 

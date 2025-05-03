@@ -1,52 +1,56 @@
 import { useMemo, useSyncExternalStore } from "react";
-import { IStoreHook, TStoreContext, TStoreUpdater } from "./types";
+import { IStoreHook, TStoreListener, TStoreUpdater } from "./types";
 
 export const createStore = <T extends object>(initialValue: T) => {
-  const context: TStoreContext<T> = {
-    listeners: new Set<VoidFunction>(),
-    data: initialValue,
-  };
+  const listeners = new Set<TStoreListener<T>>();
+  let data = initialValue;
 
-  const subscribe = (callback: VoidFunction) => {
-    context.listeners.add(callback);
-    return () => context.listeners.delete(callback);
+  const subscribe = (callback: TStoreListener<T>) => {
+    listeners.add(callback);
+    return () => listeners.delete(callback);
   };
-
-  const trigger = () => {
-    context.listeners.forEach(l => l());
-  };
-
-  const get = () => context.data;
+  const get = () => data;
   const update = (updater: TStoreUpdater<T>) => {
     if (typeof updater === "function") {
-      context.data = updater(context.data);
+      data = updater(data);
     } else {
-      context.data = updater;
+      data = updater;
     }
 
-    trigger();
+    trigger(data);
+  };
+  const trigger = (data: T) => {
+    listeners.forEach(l => l(data));
+    return true;
   };
 
   const hook: IStoreHook<T> = () => {
-    const data = useSyncExternalStore<T>(subscribe, get, get);
+    const s = useSyncExternalStore<T>(subscribe, get, get);
 
-    const proxy = useMemo(() => new Proxy(data, {
+    const proxy = useMemo(() => new Proxy(s, {
       get: (_, prop) => {
-        return (context.data as any)[prop];
+        return data[prop];
       },
       set: (_, prop, value) => {
-        context.data = {
-          ...context.data,
+        data = {
+          ...data,
           [prop]: value,
         };
-        trigger();
-        return true;
+        return trigger(data);;
       }
-    }), [data]);
+    }), [s]);
 
     return proxy;
   };
-  hook.store = { get, update };
+
+  hook.store = {
+    get,
+    update,
+    subscribe: (listener: TStoreListener<T>) => {
+      listener(get());
+      return subscribe(listener);
+    }
+  };
 
   return hook;
 };

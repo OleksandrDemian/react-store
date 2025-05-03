@@ -1,6 +1,7 @@
 {
   "name": "@odemian/react-store",
-  "version": "0.0.4",
+  "description": "🌍 The smallest and simplest global state manager for React",
+  "version": "0.0.5",
   "type": "module",
   "files": [
     "dist",
@@ -32,5 +33,15 @@
   "homepage": "https://github.com/OleksandrDemian/react-store",
   "repository": {
     "url": "https://github.com/OleksandrDemian/react-store"
-  }
+  },
+  "keywords": [
+    "react",
+    "state",
+    "manager",
+    "management",
+    "redux",
+    "store",
+    "global"
+  ],
+  "sideEffects": false
 }

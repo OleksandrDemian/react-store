@@ -1,2 +1,2 @@
 export { createStore } from "./store";
-export type { IStoreHook, TStoreUpdater, TStoreContext } from "./types";
+export type { IStoreHook, TStoreUpdater, TStoreListener } from "./types";
