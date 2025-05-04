@@ -1,7 +1,3 @@
-Absolutely! Here is a revised **README** based on your updated library, reflecting the removal of proxy-based reactivity, the addition of **selector support**, and the continued emphasis on **tiny size** and **simplicity**:
-
----
-
 # ⚛️ **@odemian/react-store**
 
 ### A minimal, typed, selector-based global state manager for React
