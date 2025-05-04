@@ -1,19 +1,33 @@
-# 🧠 **@odemian/react-store**
+Absolutely! Here is a revised **README** based on your updated library, reflecting the removal of proxy-based reactivity, the addition of **selector support**, and the continued emphasis on **tiny size** and **simplicity**:
 
-🌍 The smallest and simplest global state manager for React
+---
 
-React has no shortage of state management libraries. From the heavyweight champion Redux to modern solutions like Zustand and Valtio, you’ve got options — sometimes too many. But what if you want something super tiny, fully type-safe, and feels like magic to use?
+# ⚛️ **@odemian/react-store**
 
-`@odemian/react-store` is a global state manager that weighs less than ~1KB, has zero dependencies, and gives you reactive state via JavaScript proxies ✨.
+### A minimal, typed, selector-based global state manager for React
+
+React has no shortage of state management libraries—from Redux to Zustand and Jotai. But sometimes all you need is a **simple**, **fast**, and **tiny** way to share state across components — without magic, proxies, or boilerplate.
+
+`@odemian/react-store` is a minimal global state manager that:
+
+* Weighs less than **1KB**
+* Has **zero dependencies**
+* Is **fully type-safe**
+* Uses **selectors** for efficient state reads
+* Integrates seamlessly with `useSyncExternalStore`
+
+---
 
 ## 🚀 Features
 
-* ✅ **Tiny**: less than 1KB, no dependencies
-* 🧩 **Simple API**: create and use stores in just a few lines
-* 🪞 **Proxy-based reactivity**: directly mutate values like `user.name = "Jane"`
-* 🔄 **Hooks-friendly**: built on `useSyncExternalStore` for maximum React compatibility
-* 🛠️ **Optional utilities**: use functional `update()` when you want more control
-* ⚛️ **Works across components**: shared, reactive global state
+* ✅ **Tiny**: \~300 bytes, no dependencies
+* 🧼 **Clean API**: `createStore` gives you everything you need
+* 🎯 **Selectors**: read only the data you care about
+* 🧠 **Fully typed**: TypeScript support out of the box
+* 🔁 **Reacts to changes**: Efficient updates with fine-grained subscriptions
+* ♻️ **Global shared state**: Use in any component
+
+---
 
 ## 📦 Installation
 
@@ -21,6 +35,7 @@ React has no shortage of state management libraries. From the heavyweight champi
 npm i @odemian/react-store
 ```
 
+---
 
 ## 🧑‍💻 Usage
 
@@ -30,33 +45,30 @@ npm i @odemian/react-store
 // stores/userStore.ts
 import { createStore } from "@odemian/react-store";
 
-// Type safe
-export const useUser = createStore<{
-  name: string;
-  surname: string;
-}>({
+export const useUser = createStore({
   name: "",
   surname: "",
 });
 ```
 
-### 2. Use it in your component
+### 2. Use the store in your component
 
 ```tsx
 import { useUser } from "./stores/userStore";
 
 export const UserSettings = () => {
-  const user = useUser(); // no need to destructure, fully type and ready to use
+  const name = useUser((u) => u.name); // selector-based subscription
+  const update = useUser.store.update;
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    user.name = e.currentTarget.value; // feels like magic 🔮, this mutation is reactive
+    update((curr) => ({ ...curr, name: e.currentTarget.value }));
   };
 
   return (
     <div>
-      <h2>User settings</h2>
+      <h2>User Settings</h2>
       <label htmlFor="name">User name</label>
-      <input id="name" value={user.name} onChange={onChange} />
+      <input id="name" value={name} onChange={onChange} />
     </div>
   );
 };
@@ -66,105 +78,98 @@ export const UserSettings = () => {
 
 ```tsx
 import { useUser } from "./stores/userStore";
+import { useEffect } from "react";
 import { fetchUser } from "./api";
 
-export const UserSettings = () => {
-  const user = useUser();
+export const UserProfile = () => {
+  const user = useUser(); // no selector: returns the whole store
 
   useEffect(() => {
-    fetchUser().then((newData) => {
-      // every hook has static store property. This property exposes `get` and `update` utility functions
-      useUser.store.update(newData); // update is reactive
-      // you can also pass update function: useUser.store.update((curr) => ({ ...curr, ...newData }));
+    fetchUser().then((data) => {
+      useUser.store.update(() => data);
     });
   }, []);
 
   return (
     <div>
-      <h2>User name: {user.name} {user.surname}</h2>
+      <h2>{user.name} {user.surname}</h2>
     </div>
   );
 };
 ```
 
+---
 
-## 💡 Why Use This?
+## 🧠 Why Use This?
 
-| Feature               | Benefit                                        |
-| --------------------- | ---------------------------------------------- |
-| 🚀 Fast & Lightweight | No overhead, perfect for small apps or tools   |
-| 🔮 Proxy Reactivity   | Intuitive state mutation: `user.name = "Jane"` |
-| ♻️ Centralized State  | Share across components with ease              |
-| 🧼 Clean API          | No need for reducers, dispatch, or boilerplate |
-| 🧠 Fully Type-Safe    | Typescript support built-in out of the box     |
+| Feature               | Benefit                                   |
+| --------------------- | ----------------------------------------- |
+| ⚡️ Ultra-lightweight  | Minimal size, ideal for small to mid apps |
+| 🔎 Selector Support   | Only rerender on relevant state changes   |
+| 💡 Simple & Explicit  | No proxies, no magic — just plain JS/TS   |
+| 🧼 Type-safe & clean  | Fully typed from store to component       |
+| ♻️ Global React State | Share state across components with ease   |
 
+---
 
 ## 📘 API Reference
 
 ### `createStore<T>(initialValue: T): IStoreHook<T>`
 
-Creates a new global store with the given initial state.
-
-#### Parameters
-
-* `initialValue` (`T`): The initial state object for the store.
+Creates a global store with the given initial state.
 
 #### Returns
 
-A custom React hook (`IStoreHook<T>`) that returns a **proxy-based state object** and provides static utilities via `.store`.
+A hook that:
+
+* Subscribes to updates (`useStore(selector?)`)
+* Exposes static methods via `useStore.store`
 
 ---
 
-### Hook usage: `const state = useStore()`
+### 🔁 Hook Usage
 
-Returns a proxy-wrapped state object.
+#### `const state = useStore()`
 
-* Mutate directly: `state.count += 1`
-* All changes are reactive and automatically re-render subscribers.
+Returns the full state object.
 
----
+#### `const value = useStore(selector)`
 
-### Static Methods
-
-Available as `useStore.store`:
-
-#### `store.get(): T`
-
-Returns the current state without subscribing to updates.
-
-#### `store.update(updater: T | (state: T) => T): void`
-
-Updates the store:
-
-* You can pass a partial object or a function that receives current state and returns new state.
+Reads a selected part of state. Component only rerenders if selected value changes.
 
 Example:
 
 ```ts
-useStore.store.update({ name: "Jane" });
-useStore.store.update((curr) => ({ ...curr, name: "Jane" }));
+const name = useUser((u) => u.name);
 ```
-
-#### `store.subscribe(listener: (state: T) => void): () => void`
-
-Subscribe to state changes without using React hooks (e.g., for non-React usage or external logic).
 
 ---
 
-### Example
+### 🧩 Static Methods
+
+Accessible via `useStore.store`:
+
+#### `get(): T`
+
+Returns the current state (no subscription).
+
+#### `update(updater: (curr: T) => T): void`
+
+Updates the store with a new value or function.
+
+Example:
 
 ```ts
-const useCounter = createStore({ count: 0 });
-
-// In a component
-const counter = useCounter();
-counter.count++; // Triggers reactivity
-
-// Outside React
-useCounter.store.subscribe((state) => console.log(state.count));
+useUser.store.update((curr) => ({ ...curr, name: "Alice" }));
 ```
 
-## Example todo app
+#### `subscribe(listener: (state: T) => void): () => void`
+
+Subscribe to store changes manually (non-React usage).
+
+---
+
+## 📝 Example: Todo App
 
 ```tsx
 import { createStore } from "@odemian/react-store";
@@ -176,46 +181,44 @@ export type TTodo = {
   done: boolean;
 };
 
-// Create todos store
-export const useTodos = createStore<TTodo[]>([{
-  id: Date.now(),
-  done: false,
-  name: "Array store",
-}]);
+export const useTodos = createStore<TTodo[]>([
+  { id: Date.now(), name: "First task", done: false },
+]);
 
-// define actions
-export const toggleTodo = (id: number) => useTodos.store.update(
-  (todos) => todos.map((t) => t.id === id ? ({ ...t, done: !t.done }) : t),
-);
+export const addTodo = (name: string) =>
+  useTodos.store.update((todos) => [
+    ...todos,
+    { id: Date.now(), name, done: false },
+  ]);
 
-export const addTodo = (name: string) => useTodos.store.update(
-  (todos) => [...todos, { name, id: Date.now(), done: false }],
-);
+export const toggleTodo = (id: number) =>
+  useTodos.store.update((todos) =>
+    todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
+  );
 
-export const removeTodo = (id: number) => useTodos.store.update(
-  (todos) => todos.filter((todo) => todo.id !== id),
-);
+export const removeTodo = (id: number) =>
+  useTodos.store.update((todos) => todos.filter((t) => t.id !== id));
 
-// UI components
+// Components
 const CreateTodo = () => {
-  const [newTodo, setNewTodo] = useState("");
-  
-  const onAddNewTodo = () => {
-    addTodo(newTodo);
-    setNewTodo("");
+  const [text, setText] = useState("");
+
+  const onAddTodo = (title: string) => {
+    addTodo(title);
+    setText("");
   };
 
   return (
     <div>
       <input
-        value={newTodo}
-        onChange={(e) => setNewTodo(e.currentTarget.value)}
-        onKeyDown={(e) => e.key === "Enter" && onAddNewTodo()}
+        value={text}
+        onChange={(e) => setText(e.currentTarget.value)}
+        onKeyDown={(e) => e.key === "Enter" && onAddTodo(text)}
       />
-      <button onClick={onAddNewTodo}>Add todo</button>
+      <button onClick={() => onAddTodo(text)}>Add</button>
     </div>
   );
-}
+};
 
 const Todos = () => {
   const todos = useTodos();
@@ -227,12 +230,9 @@ const Todos = () => {
           <input
             type="checkbox"
             checked={todo.done}
-            onChange={() => {
-              // since store is array we have to use actions because only root aray is proxified to provide direct mutations
-              toggleTodo(todo.id);
-            }}
+            onChange={() => toggleTodo(todo.id)}
           />
-          <span>{todo.name}</span>
+          {todo.name}
           <button onClick={() => removeTodo(todo.id)}>Remove</button>
         </div>
       ))}
@@ -240,23 +240,15 @@ const Todos = () => {
   );
 };
 
-export const App = () => {
-  return (
-    <main>
-      <Todos />
-      <CreateTodo />
-    </main>
-  );
-};
+export const App = () => (
+  <main>
+    <Todos />
+    <CreateTodo />
+  </main>
+);
 ```
 
-
-## 🛑 Caveats
-
-* Not intended for highly complex state logic (e.g. middleware, effects)
-* Reactivity only applies to the top level object (it still works with nested objects as long as you do not destructure root object)
-* Even tho array.push/pop/etc... work, it is better to use actions (useHook.store.update) to work with stores that are arrays at root
-
+---
 
 ## 📃 License
 

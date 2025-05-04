@@ -1,54 +1,38 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { IStoreHook, TStoreListener, TStoreUpdater } from "./types";
 
-export const createStore = <T extends object>(initialValue: T) => {
+export const createStore = <T extends object>(initialValue: T): IStoreHook<T> => {
   const listeners = new Set<TStoreListener<T>>();
   let data = initialValue;
 
-  const get = () => data;
   const subscribe = (callback: TStoreListener<T>) => {
     listeners.add(callback);
     return () => listeners.delete(callback);
-  };
-  const update = (updater: TStoreUpdater<T>) => {
-    if (typeof updater === "function") {
-      data = updater(data);
-    } else {
-      data = updater;
-    }
-
-    trigger(data);
   };
   const trigger = (data: T) => {
     listeners.forEach(l => l(data));
     return true;
   };
+  const update = (updater: TStoreUpdater<T>) => {
+    data = updater(data);
+    trigger(data);
+  };
 
-  const hook: IStoreHook<T> = () => {
-    const stored = useSyncExternalStore<T>(subscribe, get, get);
+  const getSnaphsot = <R>(sel?: (store: T) => R) => () => {
+    return sel ? sel(data) : data;
+  };
 
-    const proxy = useMemo(() => new Proxy(stored, {
-      get: (target, prop) => {
-        return target[prop];
-      },
-      set: (target, prop, value) => {
-        target[prop] = value;
-        // @ts-ignore
-        data = Array.isArray(data) ? [...data] : {...data};
-        return trigger(data);
-      }
-    }), [stored]);
-
-    return proxy;
+  const hook: IStoreHook<T> = <R>(sel?: (store: T) => R) => {
+    return useSyncExternalStore(subscribe, getSnaphsot(sel), getSnaphsot(sel));
   };
 
   hook.store = {
-    get,
+    get: () => data,
     update,
     subscribe: (listener: TStoreListener<T>) => {
-      listener(get());
+      listener(data);
       return subscribe(listener);
-    }
+    },
   };
 
   return hook;
