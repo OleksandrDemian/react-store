@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { IStoreHook, TStore, TStoreListener, TUpdaterCallback, TStoreUpdater } from "./types";
 
-export const createStore = <T extends object>(initialValue: T): [IStoreHook<T>, TStoreUpdater<T>, TStore<T>] => {
+export const createStore = <T>(initialValue: T): [IStoreHook<T>, TStoreUpdater<T>, TStore<T>] => {
   const listeners = new Set<TStoreListener<T>>();
   let data = initialValue;
 

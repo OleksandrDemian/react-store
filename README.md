@@ -1,4 +1,4 @@
-# ⚛️ **@odemian/react-store**
+# ⚛️ **React store**
 
 ### A minimal, typed, selector-based global state manager for React
 
@@ -16,7 +16,7 @@ React has no shortage of state management libraries—from Redux to Zustand and 
 
 ## 🚀 Features
 
-* ✅ **Tiny**: \~300 bytes, no dependencies
+* ✅ **Tiny**: \~330 bytes, no dependencies
 * 🧼 **Clean API**: `createStore` gives you everything you need
 * 🎯 **Selectors**: read only the data you care about
 * 🧠 **Fully typed**: TypeScript support out of the box
