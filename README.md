@@ -6,11 +6,11 @@ React has no shortage of state management libraries—from Redux to Zustand and 
 
 `@odemian/react-store` is a minimal global state manager that:
 
-* Weighs less than **1KB**
+* Weighs less than **0.5KB**
 * Has **zero dependencies**
 * Is **fully type-safe**
-* Uses **selectors** for efficient state reads
-* Integrates seamlessly with `useSyncExternalStore`
+* Uses **selectors** for efficient state reads and updates
+* Based on the new `useSyncExternalStore` React API
 
 ---
 
@@ -41,7 +41,7 @@ npm i @odemian/react-store
 // stores/userStore.ts
 import { createStore } from "@odemian/react-store";
 
-export const useUser = createStore({
+export const [useUser, updateUser] = createStore({
   name: "",
   surname: "",
 });
@@ -50,14 +50,13 @@ export const useUser = createStore({
 ### 2. Use the store in your component
 
 ```tsx
-import { useUser } from "./stores/userStore";
+import { useUser, updateUser } from "./stores/userStore";
 
 export const UserSettings = () => {
   const name = useUser((u) => u.name); // selector-based subscription
-  const update = useUser.store.update;
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    update((curr) => ({ ...curr, name: e.currentTarget.value }));
+    updateUser((curr) => ({ ...curr, name: e.currentTarget.value }));
   };
 
   return (
@@ -73,17 +72,18 @@ export const UserSettings = () => {
 ### 3. Async data fetching
 
 ```tsx
-import { useUser } from "./stores/userStore";
+import { useUser, updateUser } from "./stores/userStore";
 import { useEffect } from "react";
-import { fetchUser } from "./api";
 
-export const UserProfile = () => {
-  const user = useUser(); // no selector: returns the whole store
+const fetchUser = () => new Promise<{ name: string; surname: string; }>((r) => {
+  setTimeout(() => r({ name: "Hello", surname: "world" }), 1500);
+});
+
+export const App = () => {
+  const user = useUser();
 
   useEffect(() => {
-    fetchUser().then((data) => {
-      useUser.store.update(() => data);
-    });
+    fetchUser().then(updateUser);
   }, []);
 
   return (
@@ -96,38 +96,27 @@ export const UserProfile = () => {
 
 ---
 
-## 🧠 Why Use This?
-
-| Feature               | Benefit                                   |
-| --------------------- | ----------------------------------------- |
-| ⚡️ Ultra-lightweight  | Minimal size, ideal for small to mid apps |
-| 🔎 Selector Support   | Only rerender on relevant state changes   |
-| 💡 Simple & Explicit  | No proxies, no magic — just plain JS/TS   |
-| 🧼 Type-safe & clean  | Fully typed from store to component       |
-| ♻️ Global React State | Share state across components with ease   |
-
----
-
 ## 📘 API Reference
 
-### `createStore<T>(initialValue: T): IStoreHook<T>`
+### `createStore<T>(initialValue: T): [IStoreHook<T>, TStoreUpdater<T>, TStore<T>]`
 
 Creates a global store with the given initial state.
 
 #### Returns
 
-A hook that:
+An index array with:
 
-* Subscribes to updates (`useStore(selector?)`)
-* Exposes static methods via `useStore.store`
+* Hook to be used in React components
+* Update function
+* Store get and subscribe methods
 
 ---
 
 ### 🔁 Hook Usage
 
-#### `const state = useStore()`
+#### `const value = useStore()`
 
-Returns the full state object.
+Returns the full state object (no selector).
 
 #### `const value = useStore(selector)`
 
@@ -136,32 +125,8 @@ Reads a selected part of state. Component only rerenders if selected value chang
 Example:
 
 ```ts
-const name = useUser((u) => u.name);
+const name = useUser((u) => u.name); // UI render only if name changes, not entire state
 ```
-
----
-
-### 🧩 Static Methods
-
-Accessible via `useStore.store`:
-
-#### `get(): T`
-
-Returns the current state (no subscription).
-
-#### `update(updater: (curr: T) => T): void`
-
-Updates the store with a new value or function.
-
-Example:
-
-```ts
-useUser.store.update((curr) => ({ ...curr, name: "Alice" }));
-```
-
-#### `subscribe(listener: (state: T) => void): () => void`
-
-Subscribe to store changes manually (non-React usage).
 
 ---
 
@@ -177,23 +142,23 @@ export type TTodo = {
   done: boolean;
 };
 
-export const useTodos = createStore<TTodo[]>([
+export const [useTodos, updateTodo] = createStore<TTodo[]>([
   { id: Date.now(), name: "First task", done: false },
 ]);
 
 export const addTodo = (name: string) =>
-  useTodos.store.update((todos) => [
+  updateTodo((todos) => [
     ...todos,
     { id: Date.now(), name, done: false },
   ]);
 
 export const toggleTodo = (id: number) =>
-  useTodos.store.update((todos) =>
+  updateTodo((todos) =>
     todos.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
   );
 
 export const removeTodo = (id: number) =>
-  useTodos.store.update((todos) => todos.filter((t) => t.id !== id));
+  updateTodo((todos) => todos.filter((t) => t.id !== id));
 
 // Components
 const CreateTodo = () => {

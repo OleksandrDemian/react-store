@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
-import { IStoreHook, TStoreListener, TStoreUpdater } from "./types";
+import { IStoreHook, TStore, TStoreListener, TUpdaterCallback, TStoreUpdater } from "./types";
 
-export const createStore = <T extends object>(initialValue: T): IStoreHook<T> => {
+export const createStore = <T extends object>(initialValue: T): [IStoreHook<T>, TStoreUpdater<T>, TStore<T>] => {
   const listeners = new Set<TStoreListener<T>>();
   let data = initialValue;
 
@@ -9,12 +9,14 @@ export const createStore = <T extends object>(initialValue: T): IStoreHook<T> =>
     listeners.add(callback);
     return () => listeners.delete(callback);
   };
+
   const trigger = (data: T) => {
     listeners.forEach(l => l(data));
     return true;
   };
-  const update = (updater: TStoreUpdater<T>) => {
-    data = updater(data);
+
+  const update = (updater: TUpdaterCallback<T>) => {
+    data = typeof updater === "function" ? updater(data) : updater;
     trigger(data);
   };
 
@@ -22,18 +24,15 @@ export const createStore = <T extends object>(initialValue: T): IStoreHook<T> =>
     return sel ? sel(data) : data;
   };
 
-  const hook: IStoreHook<T> = <R>(sel?: (store: T) => R) => {
+  const hook = <R>(sel?: (store: T) => R) => {
     return useSyncExternalStore(subscribe, getSnaphsot(sel), getSnaphsot(sel));
   };
 
-  hook.store = {
+  return [hook, update, {
     get: () => data,
-    update,
     subscribe: (listener: TStoreListener<T>) => {
       listener(data);
       return subscribe(listener);
     },
-  };
-
-  return hook;
+  }];
 };
