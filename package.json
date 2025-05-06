@@ -1,7 +1,7 @@
 {
   "name": "@odemian/react-store",
   "description": "🌍 A tiny and simple global state manager for React",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "type": "module",
   "files": [
     "dist",

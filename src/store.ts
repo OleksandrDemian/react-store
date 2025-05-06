@@ -1,11 +1,11 @@
 import { useSyncExternalStore } from "react";
-import { IStoreHook, TStore, TStoreListener, TUpdaterCallback, TStoreUpdater } from "./types";
+import { IStoreListener, IUpdaterCallback, CreatedStore } from "./types";
 
-export const createStore = <T>(initialValue: T): [IStoreHook<T>, TStoreUpdater<T>, TStore<T>] => {
-  const listeners = new Set<TStoreListener<T>>();
+export const createStore = <T>(initialValue: T): CreatedStore<T> => {
+  const listeners = new Set<IStoreListener<T>>();
   let data = initialValue;
 
-  const subscribe = (callback: TStoreListener<T>) => {
+  const subscribe = (callback: IStoreListener<T>) => {
     listeners.add(callback);
     return () => listeners.delete(callback);
   };
@@ -15,7 +15,7 @@ export const createStore = <T>(initialValue: T): [IStoreHook<T>, TStoreUpdater<T
     return true;
   };
 
-  const update = (updater: TUpdaterCallback<T>) => {
+  const update = (updater: IUpdaterCallback<T>) => {
     data = typeof updater === "function" ? updater(data) : updater;
     trigger(data);
   };
@@ -30,7 +30,7 @@ export const createStore = <T>(initialValue: T): [IStoreHook<T>, TStoreUpdater<T
 
   return [hook, update, {
     get: () => data,
-    subscribe: (listener: TStoreListener<T>) => {
+    subscribe: (listener: IStoreListener<T>) => {
       listener(data);
       return subscribe(listener);
     },

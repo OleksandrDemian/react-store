@@ -1,15 +1,23 @@
-export type TStoreListener<T> = (state: T) => void;
+export interface IStoreListener<T> {
+  (state: T): void;
+}
 
-export type TUpdaterCallback<T> = (curr: T) => T;
+export interface IUpdaterCallback<T> {
+  (curr: T): T;
+}
 
-export type TStoreUpdater<T> = (updater: TUpdaterCallback<T> | T) => void;
+export interface IStoreUpdater<T> {
+  (updater: IUpdaterCallback<T> | T): void;
+}
 
-export type TStore<T> = {
+export interface IStore<T> {
   get: () => T;
-  subscribe: (listener: TStoreListener<T>) => VoidFunction;
+  subscribe: (listener: IStoreListener<T>) => VoidFunction;
 };
 
 export interface IStoreHook<T> {
   (): T;
   <R>(sel?: (store: T) => R): R;
 }
+
+export type CreatedStore<T> = [IStoreHook<T>, IStoreUpdater<T>, IStore<T>];
